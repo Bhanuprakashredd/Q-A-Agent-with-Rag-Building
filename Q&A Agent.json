@@ -1,0 +1,282 @@
+{
+  "name": "Q&A Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "you are Question answer agent.\nRead the customer’s Telegram message carefully.\n\nUse the CS knowledge base tool to look up relevant field details for accurate, compliant responses.\n\nUse the Send reply tool to generate and send the response directly in the Telegram chat.\n\nMaintain a polite, concise, and professional tone, appropriate for Telegram messaging (friendly yet formal).\n\nAlways end the message with a personalized sign-off, for example:\n\n— Bhanu from IBM"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        464
+      ],
+      "id": "25560693-8fcc-4309-8214-e11d1044bdf0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        688
+      ],
+      "id": "5e2e16a8-0308-4a8f-80d3-291a0b06f529",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "lqVRhvLG3mdmE0WK",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from.id }}",
+        "contextWindowLength": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -240,
+        688
+      ],
+      "id": "fa284cca-aa9e-48a2-bf2b-f34111b7d858",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Extract the relevant information from the knowledge base to answer the customer's questions.",
+        "topK": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        -112,
+        688
+      ],
+      "id": "d5566bca-10e5-42e1-873d-65ed3c8a9deb",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "offer-letter-faq",
+          "mode": "list",
+          "cachedResultName": "offer-letter-faq"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        896
+      ],
+      "id": "511110ff-ed7d-46d0-8473-fc840c280439",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "11FXg9Df3WAM7G3A",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-light-v2.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        1104
+      ],
+      "id": "e90f3e68-8387-4a50-beb1-e6d0d075c0e2",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "3r1aZlrBriNTI87C",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        896
+      ],
+      "id": "f3fc6e25-66ab-42ef-baa1-94e6d6d4e39a",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "lqVRhvLG3mdmE0WK",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -512,
+        464
+      ],
+      "id": "e85f262a-15bc-4299-964e-c19c71949c4b",
+      "name": "Telegram Trigger",
+      "webhookId": "020b5f4f-276c-4494-ad80-7c61db30cb11",
+      "credentials": {
+        "telegramApi": {
+          "id": "Z1Y1ScKYYogUfqco",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.from.id }}",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTool",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        688
+      ],
+      "id": "a7a33666-c43e-421c-9b74-00711e1180e6",
+      "name": "send replies",
+      "webhookId": "b1117cad-974e-495c-a2fe-5aa01e29721a",
+      "credentials": {
+        "telegramApi": {
+          "id": "Z1Y1ScKYYogUfqco",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send replies": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "456e3a8d-7b18-49bd-a40b-4605cad11fba",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dd51737166a65cf3792febd6d5418f8fd800511129f54c80fc6771570707b023"
+  },
+  "id": "XGFLUJ8YEvAq8ggr",
+  "tags": []
+}
